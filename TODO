@@ -1,0 +1,2 @@
+timeout leads to graceful shutdown instead of sudden death
+more oo and setup of a perl test framework

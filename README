@@ -1,0 +1,141 @@
+check_sstcam Nagios Plugin README
+---------------------
+
+This plugin checks the alarm directory of a SUN Storagetek Common Array Manager.The CAM is a management software for SUN StorEdge 6130 and SUN StorageTek 6140
+and 6540 Storage arrays. Warnings and failures of the managed systems will be
+written as files into the alarm directory. The check_sstcam plugin reads this
+directory periodically and forwards newly reported alerts to Nagios.
+
+* For instructions on installing this plugin for use with Nagios,
+  see below. In addition, generic instructions for the GNU toolchain
+  can be found in the INSTALL file.
+
+* For major changes between releases, read the CHANGES file.
+
+* For information on detailed changes that have been made,
+  read the Changelog file.
+
+* This plugins is self documenting.  All plugins that comply with
+  the basic guidelines for development will provide detailed help when
+  invoked with the '-h' or '--help' options.
+
+You can check for the latest plugin at:
+  http://www.consol.de/opensource/check-sstcam
+
+Send mail to gerhard.lausser@consol.de for assistance.  
+Please include the OS type and version that you are using.
+Also, run the plugin with the '-v' option and provide the resulting 
+version information.  Of course, there may be additional diagnostic information
+required as well.  Use good judgment.
+
+
+How to "compile" the check_sstcam script.
+--------------------------------------------------------
+
+1) Run the configure script to initialize variables and create a Makefile, etc.
+
+	./configure --prefix=BASEDIRECTORY --with-nagios-user=SOMEUSER --with-nagios-group=SOMEGROUP --with-perl=PATH_TO_PERL --with-alarm-dir=ALARMDIR --with-status-dir=STATUSDIR
+
+   a) Replace BASEDIRECTORY with the path of the directory under which Nagios
+      is installed (default is '/usr/local/nagios')
+   b) Replace SOMEUSER with the name of a user on your system that will be
+      assigned permissions to the installed plugins (default is 'nagios')
+   c) Replace SOMEGRP with the name of a group on your system that will be
+      assigned permissions to the installed plugins (default is 'nagios')
+   d) Replace PATH_TO_PERL with the path where a perl binary can be found.
+      Besides the system wide perl you might have installed a private perl
+      just for the nagios plugins (default is the perl in your path).
+   e) Replace ALARMDIR with the path where your CAM installation writes 
+      the alarm files.
+      (default is /var/opt/SUNWsefms/store/Alarms).
+   f) Replace STATUSDIR with the path where you want to keep the status
+      information between the single runs of check_sstcam.
+      (default is $HOME/var/tmp).
+
+2) "Compile" the plugin with the following command:
+
+	make
+
+    This will produce a "check_sstcam" script. You will also find
+    a "check_sstcam.pl" which you better ignore. It is the base for
+    the compilation filled with placeholders. These will be replaced during
+    the make process.
+
+
+3) Install the compiled plugin script with the following command:
+
+	make install
+
+   The installation procedure will attempt to place the plugin in a 
+   'libexec/' subdirectory in the base directory you specified with
+   the --prefix argument to the configure script.
+
+
+4) Verify that your configuration files for Nagios contains
+   the correct paths to the new plugin.
+
+
+
+
+Command line parameters
+-----------------------
+
+-n <device>
+   If you want monitor just one specific storage system instead of all 
+   known to the CAM, you specify it's name here.
+
+-f <configfile>
+   If you want to monitor more than one storage system but not all of them
+   (which is the default), you can name them in a config file. 
+
+-p | --persistent
+   Using this parameter causes the plugin to exit critical as long as
+   there is an alarm file. (If you set this parameter, do _not_ set
+   is_volatile to 1)
+
+
+Format of the configuration file
+--------------------------------
+
+check_sstcam interprets a configuration file, which contains the names of
+all storage systems you want to monitor. It is a simple piece of perl-code
+where the names are the elements of an array called @devicenames.
+Example:
+
+@devicenames = qw(The-6540-storage-1st-floor Treefrog-1);
+
+
+
+
+How to call check_sstcam from Nagios
+--------------------------------------
+
+ Only newly occurred alarms shall be reported. If the same error is found
+ through a second run of check_sstcam, the plugin will report OK.
+ The service definition must be defined like this:
+
+ define service {
+   service_description   check_sstcam
+   # the CAM software runs on host hundsglump.muc
+   host_name             hundsglump.muc
+   check_command         check_nrpe!check_sstcam
+   is_volatile           1
+   check_period          7x24
+   max_check_attempts    1
+   ... 
+ }
+
+ If you don't understand what is_volatile means, do read the nagios
+ documentation on this topic.
+
+
+
+
+That's it.  If you have any problems or questions, feel free to send mail
+to gerhard.lausser@consol.de
+
+
+
+
+--
+Gerhard Lausser <gerhard.lausser@consol.de>

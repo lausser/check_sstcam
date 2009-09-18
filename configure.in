@@ -1,0 +1,96 @@
+dnl Process this file with autoconf to produce a configure script.
+AC_REVISION ($Revision: 1.150 $)
+AC_PREREQ(2.58)
+AC_INIT(check_sstcam,1.2)
+AM_INIT_AUTOMAKE
+AC_CANONICAL_HOST
+
+RELEASE=1
+AC_SUBST(RELEASE)
+
+AC_PREFIX_DEFAULT(/usr/local/nagios)
+
+dnl Figure out how to invoke "install" and what install options to use.
+AC_PROG_INSTALL
+AC_SUBST(INSTALL)
+
+AC_PROG_CC
+AC_PROG_CPP
+AC_PROG_GCC_TRADITIONAL
+AC_PROG_RANLIB
+
+AC_PROG_MAKE_SET
+AC_PROG_AWK
+
+WARRANTY="This plugin comes with ABSOLUTELY NO WARRANTY. You may redistribute\ncopies of the plugin under the terms of the GNU General Public License.\nFor more information about these matters, see the file named COPYING.\n"
+AC_SUBST(WARRANTY)
+
+SUPPORT="Send email to gerhard.lausser@consol.de if you have questions\nregarding use of this software.\nPlease include version information with all correspondence (when possible,\nuse output from the --version option of the plugin itself).\n"
+AC_SUBST(SUPPORT)
+
+AC_ARG_WITH(nagios_user,
+  ACX_HELP_STRING([--with-nagios-user=USER],
+    [set user name to run nagios]),
+  with_nagios_user=$withval,
+  with_nagios_user=nagios)
+AC_ARG_WITH(nagios_group,
+  ACX_HELP_STRING([--with-nagios-group=GROUP],
+    [set group name to run nagios]),
+  with_nagios_group=$withval,
+  with_nagios_group=nagios)
+AC_SUBST(with_nagios_user)
+AC_SUBST(with_nagios_group)
+INSTALL_OPTS="-o $with_nagios_user -g $with_nagios_group"
+AC_SUBST(INSTALL_OPTS)
+
+case "$host_os" in 
+  *hp*)
+    defaulttrustedpath=/bin:/sbin:/usr/bin:/usr/sbin:/usr/contrib/bin
+    ;;
+  *)
+    defaulttrustedpath=/bin:/sbin:/usr/bin:/usr/sbin
+    ;;
+esac
+
+AC_ARG_WITH(alarm_dir,
+  ACX_HELP_STRING([--with-alarm-dir=PATH],
+    [sets directory where CAM writes alarm file to
+                          (default=/var/opt/SUNWsefms/store/Alarms)]),
+  with_alarm_dir=$withval,
+  with_alarm_dir=/var/opt/SUNWsefms/store/Alarms)
+AC_SUBST(ALARM_DIR, $with_alarm_dir)
+echo variable with_alarm_dir is $with_alarm_dir
+
+AC_ARG_WITH(status_dir,
+  ACX_HELP_STRING([--with-status-dir=PATH],
+    [sets directory where status information is being kept
+                          (default=$HOME/var/tmp)]),
+  with_status_dir=$withval,
+  with_status_dir=$HOME/var/tmp)
+AC_SUBST(STATUS_DIR, $with_status_dir)
+
+EXTRAS=
+dnl PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/etc:/usr/local/bin:/usr/local/sbin:$PATH
+
+dnl Checks for programs.
+AC_PATH_PROG(SH,sh)
+AC_PATH_PROG(PERL,perl)
+
+dnl allow them to override the path of perl
+AC_ARG_WITH(perl,
+  ACX_HELP_STRING([--with-perl=PATH],
+    [sets path to perl executable]),
+  with_perl=$withval,with_perl=$PERL)
+AC_SUBST(PERL, $with_perl)
+
+AC_OUTPUT(
+  Makefile 
+  plugins-scripts/Makefile 
+  plugins-scripts/subst 
+)
+
+ACX_FEATURE([with],[perl])
+ACX_FEATURE([with],[alarm-dir])
+ACX_FEATURE([with],[status-dir])
+ACX_FEATURE([with],[nagios-user])
+ACX_FEATURE([with],[nagios-group])
